@@ -1,0 +1,5 @@
+Name: vehicle-rpc
+ListenOn: 127.0.0.1:8081 # gRPC 监听端口
+
+MQTT:
+  Broker: tcp://172.28.29.226:1883 # MQTT 代理地址

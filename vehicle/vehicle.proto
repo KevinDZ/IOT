@@ -1,0 +1,44 @@
+
+syntax = "proto3";
+
+package vehicle;
+option go_package = "./vehicle";
+
+// 车辆控制请求
+message ControlReq {
+  string VehicleID = 1;
+  string Action = 2; // 如 unlock_door, start_engine
+}
+
+// 车辆控制响应
+message ControlResp {
+  int32 Code = 1;
+  string Msg = 2;
+}
+
+// 车辆状态查询响应
+message VehicleStatusResp {
+  string VehicleID = 1;
+  double Speed = 2;
+  double FuelLevel = 3;
+  bool EngineOn = 4;
+}
+
+service VehicleService {
+  // 接收云端下发的控制指令
+  rpc ControlVehicle(ControlReq) returns (ControlResp);
+  // 供其他服务查询车辆实时状态
+  rpc GetVehicleStatus(ControlReq) returns (VehicleStatusResp);
+}
+
+service Vehicle {
+  rpc Ping(Request) returns(Response);
+}
+
+message Request {
+  string ping = 1;
+}
+
+message Response {
+  string pong = 1;
+}

@@ -1,0 +1,6 @@
+Name: mobile-api
+Host: 0.0.0.0
+Port: 8080
+
+MQTT:
+  Broker: tcp://172.28.29.226:1883 # MQTT 代理地址
