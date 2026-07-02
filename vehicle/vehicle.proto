@@ -19,9 +19,12 @@ message ControlResp {
 // 车辆状态查询响应
 message VehicleStatusResp {
   string VehicleID = 1;
-  double Speed = 2;
-  double FuelLevel = 3;
-  bool EngineOn = 4;
+  double Speed = 2; // 车速 (km/h)
+  double FuelLevel = 3; // 油量
+  bool EngineOn = 4; // 启动
+  double Battery = 5; // 电量 (%)
+  bool  IsOnline = 6;   // 在线状态
+  double LastUpdated  = 7; // 状态更新时间戳
 }
 
 service VehicleService {
