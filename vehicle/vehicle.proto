@@ -4,6 +4,14 @@ syntax = "proto3";
 package vehicle;
 option go_package = "./vehicle";
 
+
+enum Action {
+  option allow_alias = true; // 允许别名（Alias）
+  int32 LockDoor = 1;
+  int32 UnlockDoor = 2;
+   
+}
+
 // 车辆控制请求
 message ControlReq {
   string VehicleID = 1;
@@ -32,11 +40,10 @@ service VehicleService {
   rpc ControlVehicle(ControlReq) returns (ControlResp);
   // 供其他服务查询车辆实时状态
   rpc GetVehicleStatus(ControlReq) returns (VehicleStatusResp);
-}
 
-service Vehicle {
   rpc Ping(Request) returns(Response);
 }
+
 
 message Request {
   string ping = 1;

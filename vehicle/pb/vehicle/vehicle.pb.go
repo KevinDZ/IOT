@@ -131,9 +131,12 @@ func (x *ControlResp) GetMsg() string {
 type VehicleStatusResp struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	VehicleID     string                 `protobuf:"bytes,1,opt,name=VehicleID,proto3" json:"VehicleID,omitempty"`
-	Speed         float64                `protobuf:"fixed64,2,opt,name=Speed,proto3" json:"Speed,omitempty"`
-	FuelLevel     float64                `protobuf:"fixed64,3,opt,name=FuelLevel,proto3" json:"FuelLevel,omitempty"`
-	EngineOn      bool                   `protobuf:"varint,4,opt,name=EngineOn,proto3" json:"EngineOn,omitempty"`
+	Speed         float64                `protobuf:"fixed64,2,opt,name=Speed,proto3" json:"Speed,omitempty"`             // 车速 (km/h)
+	FuelLevel     float64                `protobuf:"fixed64,3,opt,name=FuelLevel,proto3" json:"FuelLevel,omitempty"`     // 油量
+	EngineOn      bool                   `protobuf:"varint,4,opt,name=EngineOn,proto3" json:"EngineOn,omitempty"`        // 启动
+	Battery       float64                `protobuf:"fixed64,5,opt,name=Battery,proto3" json:"Battery,omitempty"`         // 电量 (%)
+	IsOnline      bool                   `protobuf:"varint,6,opt,name=IsOnline,proto3" json:"IsOnline,omitempty"`        // 在线状态
+	LastUpdated   float64                `protobuf:"fixed64,7,opt,name=LastUpdated,proto3" json:"LastUpdated,omitempty"` // 状态更新时间戳
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -194,6 +197,27 @@ func (x *VehicleStatusResp) GetEngineOn() bool {
 		return x.EngineOn
 	}
 	return false
+}
+
+func (x *VehicleStatusResp) GetBattery() float64 {
+	if x != nil {
+		return x.Battery
+	}
+	return 0
+}
+
+func (x *VehicleStatusResp) GetIsOnline() bool {
+	if x != nil {
+		return x.IsOnline
+	}
+	return false
+}
+
+func (x *VehicleStatusResp) GetLastUpdated() float64 {
+	if x != nil {
+		return x.LastUpdated
+	}
+	return 0
 }
 
 type Request struct {
@@ -295,20 +319,22 @@ const file_vehicle_proto_rawDesc = "" +
 	"\x06Action\x18\x02 \x01(\tR\x06Action\"3\n" +
 	"\vControlResp\x12\x12\n" +
 	"\x04Code\x18\x01 \x01(\x05R\x04Code\x12\x10\n" +
-	"\x03Msg\x18\x02 \x01(\tR\x03Msg\"\x81\x01\n" +
+	"\x03Msg\x18\x02 \x01(\tR\x03Msg\"\xd9\x01\n" +
 	"\x11VehicleStatusResp\x12\x1c\n" +
 	"\tVehicleID\x18\x01 \x01(\tR\tVehicleID\x12\x14\n" +
 	"\x05Speed\x18\x02 \x01(\x01R\x05Speed\x12\x1c\n" +
 	"\tFuelLevel\x18\x03 \x01(\x01R\tFuelLevel\x12\x1a\n" +
-	"\bEngineOn\x18\x04 \x01(\bR\bEngineOn\"\x1d\n" +
+	"\bEngineOn\x18\x04 \x01(\bR\bEngineOn\x12\x18\n" +
+	"\aBattery\x18\x05 \x01(\x01R\aBattery\x12\x1a\n" +
+	"\bIsOnline\x18\x06 \x01(\bR\bIsOnline\x12 \n" +
+	"\vLastUpdated\x18\a \x01(\x01R\vLastUpdated\"\x1d\n" +
 	"\aRequest\x12\x12\n" +
 	"\x04ping\x18\x01 \x01(\tR\x04ping\"\x1e\n" +
 	"\bResponse\x12\x12\n" +
-	"\x04pong\x18\x01 \x01(\tR\x04pong2\x92\x01\n" +
+	"\x04pong\x18\x01 \x01(\tR\x04pong2\xbf\x01\n" +
 	"\x0eVehicleService\x12;\n" +
 	"\x0eControlVehicle\x12\x13.vehicle.ControlReq\x1a\x14.vehicle.ControlResp\x12C\n" +
-	"\x10GetVehicleStatus\x12\x13.vehicle.ControlReq\x1a\x1a.vehicle.VehicleStatusResp26\n" +
-	"\aVehicle\x12+\n" +
+	"\x10GetVehicleStatus\x12\x13.vehicle.ControlReq\x1a\x1a.vehicle.VehicleStatusResp\x12+\n" +
 	"\x04Ping\x12\x10.vehicle.Request\x1a\x11.vehicle.ResponseB\vZ\t./vehicleb\x06proto3"
 
 var (
@@ -334,10 +360,10 @@ var file_vehicle_proto_goTypes = []any{
 var file_vehicle_proto_depIdxs = []int32{
 	0, // 0: vehicle.VehicleService.ControlVehicle:input_type -> vehicle.ControlReq
 	0, // 1: vehicle.VehicleService.GetVehicleStatus:input_type -> vehicle.ControlReq
-	3, // 2: vehicle.Vehicle.Ping:input_type -> vehicle.Request
+	3, // 2: vehicle.VehicleService.Ping:input_type -> vehicle.Request
 	1, // 3: vehicle.VehicleService.ControlVehicle:output_type -> vehicle.ControlResp
 	2, // 4: vehicle.VehicleService.GetVehicleStatus:output_type -> vehicle.VehicleStatusResp
-	4, // 5: vehicle.Vehicle.Ping:output_type -> vehicle.Response
+	4, // 5: vehicle.VehicleService.Ping:output_type -> vehicle.Response
 	3, // [3:6] is the sub-list for method output_type
 	0, // [0:3] is the sub-list for method input_type
 	0, // [0:0] is the sub-list for extension type_name
@@ -358,7 +384,7 @@ func file_vehicle_proto_init() {
 			NumEnums:      0,
 			NumMessages:   5,
 			NumExtensions: 0,
-			NumServices:   2,
+			NumServices:   1,
 		},
 		GoTypes:           file_vehicle_proto_goTypes,
 		DependencyIndexes: file_vehicle_proto_depIdxs,

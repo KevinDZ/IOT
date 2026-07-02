@@ -4,26 +4,26 @@
 
 package server
 
-import (
-	"context"
+// import (
+// 	"context"
 
-	"vehicle/internal/logic"
-	"vehicle/internal/svc"
-	"vehicle/vehicle"
-)
+// 	"vehicle/internal/logic"
+// 	"vehicle/internal/svc"
+// 	"vehicle/pb/vehicle"
+// )
 
-type VehicleServer struct {
-	svcCtx *svc.ServiceContext
-	vehicle.UnimplementedVehicleServer
-}
+// type VehicleServer struct {
+// 	svcCtx *svc.ServiceContext
+// 	vehicle.UnimplementedVehicleServiceServer
+// }
 
-func NewVehicleServer(svcCtx *svc.ServiceContext) *VehicleServer {
-	return &VehicleServer{
-		svcCtx: svcCtx,
-	}
-}
+// func NewVehicleServiceServer(svcCtx *svc.ServiceContext) *VehicleServer {
+// 	return &VehicleServer{
+// 		svcCtx: svcCtx,
+// 	}
+// }
 
-func (s *VehicleServer) Ping(ctx context.Context, in *vehicle.Request) (*vehicle.Response, error) {
-	l := logic.NewPingLogic(ctx, s.svcCtx)
-	return l.Ping(in)
-}
+// func (s *VehicleServer) Ping(ctx context.Context, in *vehicle.Request) (*vehicle.Response, error) {
+// 	l := logic.NewPingLogic(ctx, s.svcCtx)
+// 	return l.Ping(in)
+// }

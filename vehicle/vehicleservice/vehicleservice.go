@@ -7,7 +7,7 @@ package vehicleservice
 import (
 	"context"
 
-	"vehicle/vehicle"
+	"vehicle/pb/vehicle"
 
 	"github.com/zeromicro/go-zero/zrpc"
 	"google.golang.org/grpc"
@@ -16,6 +16,8 @@ import (
 type (
 	ControlReq        = vehicle.ControlReq
 	ControlResp       = vehicle.ControlResp
+	Request           = vehicle.Request
+	Response          = vehicle.Response
 	VehicleStatusResp = vehicle.VehicleStatusResp
 
 	VehicleService interface {
@@ -23,6 +25,7 @@ type (
 		ControlVehicle(ctx context.Context, in *ControlReq, opts ...grpc.CallOption) (*ControlResp, error)
 		// 供其他服务查询车辆实时状态
 		GetVehicleStatus(ctx context.Context, in *ControlReq, opts ...grpc.CallOption) (*VehicleStatusResp, error)
+		Ping(ctx context.Context, in *Request, opts ...grpc.CallOption) (*Response, error)
 	}
 
 	defaultVehicleService struct {
@@ -46,4 +49,9 @@ func (m *defaultVehicleService) ControlVehicle(ctx context.Context, in *ControlR
 func (m *defaultVehicleService) GetVehicleStatus(ctx context.Context, in *ControlReq, opts ...grpc.CallOption) (*VehicleStatusResp, error) {
 	client := vehicle.NewVehicleServiceClient(m.cli.Conn())
 	return client.GetVehicleStatus(ctx, in, opts...)
+}
+
+func (m *defaultVehicleService) Ping(ctx context.Context, in *Request, opts ...grpc.CallOption) (*Response, error) {
+	client := vehicle.NewVehicleServiceClient(m.cli.Conn())
+	return client.Ping(ctx, in, opts...)
 }

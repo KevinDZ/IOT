@@ -3,3 +3,9 @@ ListenOn: 127.0.0.1:8081 # gRPC 监听端口
 
 MQTT:
   Broker: tcp://172.28.29.226:1883 # MQTT 代理地址
+  StatusTopic: /vehicle/1001/status # MQTT 状态主题
+  ControlTopic: /vehicle/1001/control # MQTT 控制主题
+  ClientID: vehicle-rpc-1001 # MQTT 客户端 ID
+
+Vehicle:
+  ID: “1001” # 车辆 ID

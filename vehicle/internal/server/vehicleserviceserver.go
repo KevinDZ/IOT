@@ -9,7 +9,7 @@ import (
 
 	"vehicle/internal/logic"
 	"vehicle/internal/svc"
-	"vehicle/vehicle"
+	"vehicle/pb/vehicle"
 )
 
 type VehicleServiceServer struct {
@@ -33,4 +33,9 @@ func (s *VehicleServiceServer) ControlVehicle(ctx context.Context, in *vehicle.C
 func (s *VehicleServiceServer) GetVehicleStatus(ctx context.Context, in *vehicle.ControlReq) (*vehicle.VehicleStatusResp, error) {
 	l := logic.NewGetVehicleStatusLogic(ctx, s.svcCtx)
 	return l.GetVehicleStatus(in)
+}
+
+func (s *VehicleServiceServer) Ping(ctx context.Context, in *vehicle.Request) (*vehicle.Response, error) {
+	l := logic.NewPingLogic(ctx, s.svcCtx)
+	return l.Ping(in)
 }

@@ -21,6 +21,7 @@ const _ = grpc.SupportPackageIsVersion9
 const (
 	VehicleService_ControlVehicle_FullMethodName   = "/vehicle.VehicleService/ControlVehicle"
 	VehicleService_GetVehicleStatus_FullMethodName = "/vehicle.VehicleService/GetVehicleStatus"
+	VehicleService_Ping_FullMethodName             = "/vehicle.VehicleService/Ping"
 )
 
 // VehicleServiceClient is the client API for VehicleService service.
@@ -31,6 +32,7 @@ type VehicleServiceClient interface {
 	ControlVehicle(ctx context.Context, in *ControlReq, opts ...grpc.CallOption) (*ControlResp, error)
 	// 供其他服务查询车辆实时状态
 	GetVehicleStatus(ctx context.Context, in *ControlReq, opts ...grpc.CallOption) (*VehicleStatusResp, error)
+	Ping(ctx context.Context, in *Request, opts ...grpc.CallOption) (*Response, error)
 }
 
 type vehicleServiceClient struct {
@@ -61,6 +63,16 @@ func (c *vehicleServiceClient) GetVehicleStatus(ctx context.Context, in *Control
 	return out, nil
 }
 
+func (c *vehicleServiceClient) Ping(ctx context.Context, in *Request, opts ...grpc.CallOption) (*Response, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(Response)
+	err := c.cc.Invoke(ctx, VehicleService_Ping_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // VehicleServiceServer is the server API for VehicleService service.
 // All implementations must embed UnimplementedVehicleServiceServer
 // for forward compatibility.
@@ -69,6 +81,7 @@ type VehicleServiceServer interface {
 	ControlVehicle(context.Context, *ControlReq) (*ControlResp, error)
 	// 供其他服务查询车辆实时状态
 	GetVehicleStatus(context.Context, *ControlReq) (*VehicleStatusResp, error)
+	Ping(context.Context, *Request) (*Response, error)
 	mustEmbedUnimplementedVehicleServiceServer()
 }
 
@@ -84,6 +97,9 @@ func (UnimplementedVehicleServiceServer) ControlVehicle(context.Context, *Contro
 }
 func (UnimplementedVehicleServiceServer) GetVehicleStatus(context.Context, *ControlReq) (*VehicleStatusResp, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetVehicleStatus not implemented")
+}
+func (UnimplementedVehicleServiceServer) Ping(context.Context, *Request) (*Response, error) {
+	return nil, status.Error(codes.Unimplemented, "method Ping not implemented")
 }
 func (UnimplementedVehicleServiceServer) mustEmbedUnimplementedVehicleServiceServer() {}
 func (UnimplementedVehicleServiceServer) testEmbeddedByValue()                        {}
@@ -142,6 +158,24 @@ func _VehicleService_GetVehicleStatus_Handler(srv interface{}, ctx context.Conte
 	return interceptor(ctx, in, info, handler)
 }
 
+func _VehicleService_Ping_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Request)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(VehicleServiceServer).Ping(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: VehicleService_Ping_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(VehicleServiceServer).Ping(ctx, req.(*Request))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // VehicleService_ServiceDesc is the grpc.ServiceDesc for VehicleService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -157,107 +191,9 @@ var VehicleService_ServiceDesc = grpc.ServiceDesc{
 			MethodName: "GetVehicleStatus",
 			Handler:    _VehicleService_GetVehicleStatus_Handler,
 		},
-	},
-	Streams:  []grpc.StreamDesc{},
-	Metadata: "vehicle.proto",
-}
-
-const (
-	Vehicle_Ping_FullMethodName = "/vehicle.Vehicle/Ping"
-)
-
-// VehicleClient is the client API for Vehicle service.
-//
-// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
-type VehicleClient interface {
-	Ping(ctx context.Context, in *Request, opts ...grpc.CallOption) (*Response, error)
-}
-
-type vehicleClient struct {
-	cc grpc.ClientConnInterface
-}
-
-func NewVehicleClient(cc grpc.ClientConnInterface) VehicleClient {
-	return &vehicleClient{cc}
-}
-
-func (c *vehicleClient) Ping(ctx context.Context, in *Request, opts ...grpc.CallOption) (*Response, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(Response)
-	err := c.cc.Invoke(ctx, Vehicle_Ping_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-// VehicleServer is the server API for Vehicle service.
-// All implementations must embed UnimplementedVehicleServer
-// for forward compatibility.
-type VehicleServer interface {
-	Ping(context.Context, *Request) (*Response, error)
-	mustEmbedUnimplementedVehicleServer()
-}
-
-// UnimplementedVehicleServer must be embedded to have
-// forward compatible implementations.
-//
-// NOTE: this should be embedded by value instead of pointer to avoid a nil
-// pointer dereference when methods are called.
-type UnimplementedVehicleServer struct{}
-
-func (UnimplementedVehicleServer) Ping(context.Context, *Request) (*Response, error) {
-	return nil, status.Error(codes.Unimplemented, "method Ping not implemented")
-}
-func (UnimplementedVehicleServer) mustEmbedUnimplementedVehicleServer() {}
-func (UnimplementedVehicleServer) testEmbeddedByValue()                 {}
-
-// UnsafeVehicleServer may be embedded to opt out of forward compatibility for this service.
-// Use of this interface is not recommended, as added methods to VehicleServer will
-// result in compilation errors.
-type UnsafeVehicleServer interface {
-	mustEmbedUnimplementedVehicleServer()
-}
-
-func RegisterVehicleServer(s grpc.ServiceRegistrar, srv VehicleServer) {
-	// If the following call panics, it indicates UnimplementedVehicleServer was
-	// embedded by pointer and is nil.  This will cause panics if an
-	// unimplemented method is ever invoked, so we test this at initialization
-	// time to prevent it from happening at runtime later due to I/O.
-	if t, ok := srv.(interface{ testEmbeddedByValue() }); ok {
-		t.testEmbeddedByValue()
-	}
-	s.RegisterService(&Vehicle_ServiceDesc, srv)
-}
-
-func _Vehicle_Ping_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(Request)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(VehicleServer).Ping(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: Vehicle_Ping_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(VehicleServer).Ping(ctx, req.(*Request))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-// Vehicle_ServiceDesc is the grpc.ServiceDesc for Vehicle service.
-// It's only intended for direct use with grpc.RegisterService,
-// and not to be introspected or modified (even as a copy)
-var Vehicle_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "vehicle.Vehicle",
-	HandlerType: (*VehicleServer)(nil),
-	Methods: []grpc.MethodDesc{
 		{
 			MethodName: "Ping",
-			Handler:    _Vehicle_Ping_Handler,
+			Handler:    _VehicleService_Ping_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

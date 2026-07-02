@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"vehicle/internal/svc"
-	"vehicle/vehicle"
+	"vehicle/pb/vehicle"
 
 	"github.com/zeromicro/go-zero/core/logx"
 )
