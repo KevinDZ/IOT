@@ -22,6 +22,7 @@ type ServiceContext struct {
 	Ctx        context.Context
 	Cancel     context.CancelFunc
 	SigChan    chan os.Signal
+	wg         *sync.WaitGroup
 }
 
 func NewServiceContext(c config.Config, t *tls.Config, wg *sync.WaitGroup) *ServiceContext {
@@ -29,6 +30,7 @@ func NewServiceContext(c config.Config, t *tls.Config, wg *sync.WaitGroup) *Serv
 	opts := mqtt.NewClientOptions().AddBroker(c.MQTT.Broker)
 	opts.SetClientID(c.MQTT.ClientID)
 	opts.SetAutoReconnect(true)
+	opts.SetKeepAlive(10 * time.Second) // 10 秒发送一次心跳(协议级别)
 	opts.SetTLSConfig(t)
 
 	// 🚨 核心：配置遗嘱消息 (Will Message)
@@ -48,7 +50,7 @@ func NewServiceContext(c config.Config, t *tls.Config, wg *sync.WaitGroup) *Serv
 
 	// 2. 设置连接成功后的回调（在这里进行订阅，确保不会丢失消息）
 	opts.OnConnect = func(client mqtt.Client) { // 确保这个 Topic 与手机端发布的完全一致
-		token := client.Subscribe(c.MQTT.ControlTopic, 1, handleCommand) // QoS 设为 1
+		token := client.Subscribe(c.MQTT.ControlTopic, c.MQTT.QoS, handleCommand) // QoS 设为 1
 		token.Wait()
 		if token.Error() != nil {
 			log.Printf("❌ 订阅 Topic [%s] 失败: %v\n", c.MQTT.ControlTopic, token.Error())
@@ -79,26 +81,30 @@ func NewServiceContext(c config.Config, t *tls.Config, wg *sync.WaitGroup) *Serv
 		Ctx:        ctx,
 		Cancel:     cancel,
 		SigChan:    make(chan os.Signal),
+		wg:         wg,
 	}
 
-	s.initMQTT(wg)
+	s.initMQTT()
 
 	return s
 }
 
-func (s *ServiceContext) initMQTT(wg *sync.WaitGroup) {
+func (s *ServiceContext) initMQTT() {
 	log.Println("✅ MQTT 连接成功，正在启动后台协程...")
 
 	// 启动协程 1：监听控制指令
-	go s.listenCommands(wg)
+	go s.listenCommands()
 
 	// 启动协程 2：定时上传车辆状态
-	go s.uploadStatus(wg)
+	go s.uploadStatus()
+
+	// 启动协程 3： 心跳监听
+	s.Heartbeat()
 }
 
-func (sc *ServiceContext) listenCommands(wg *sync.WaitGroup) {
+func (sc *ServiceContext) listenCommands() {
 
-	wg.Add(1)
+	sc.wg.Add(1)
 	log.Println("🚗 车载端已启动，等待手机端指令...")
 
 	ticker := time.NewTicker(10 * time.Second)
@@ -108,7 +114,7 @@ func (sc *ServiceContext) listenCommands(wg *sync.WaitGroup) {
 		select {
 		case <-sc.Ctx.Done(): // 等待上下文取消信号
 			log.Println("🚗 车载端已安全退出")
-			wg.Done()
+			sc.wg.Done()
 			return
 		case <-ticker.C:
 			token := sc.MQTTClient.Subscribe(sc.Config.MQTT.ControlTopic, 1, handleCommand)
@@ -159,8 +165,8 @@ func handleCommand(client mqtt.Client, msg mqtt.Message) {
 	}
 }
 
-func (sc *ServiceContext) uploadStatus(wg *sync.WaitGroup) {
-	wg.Add(1)
+func (sc *ServiceContext) uploadStatus() {
+	sc.wg.Add(1)
 
 	// 定时上传车辆状态
 	battery := 85.0 // todo 实际项目中这里读取 CAN 总线或传感器数据
@@ -172,7 +178,7 @@ func (sc *ServiceContext) uploadStatus(wg *sync.WaitGroup) {
 		select {
 		case <-sc.Ctx.Done():
 			log.Println("🛑 [状态上传] 收到退出信号，协程安全退出")
-			wg.Done()
+			sc.wg.Done()
 			return
 		case <-ticker.C:
 			// 💡 建议：正常上报时，明确带上 "online" 状态
@@ -192,7 +198,7 @@ func (sc *ServiceContext) uploadStatus(wg *sync.WaitGroup) {
 				continue
 			}
 			// 发布到专属的状态 Topic
-			token := sc.MQTTClient.Publish(sc.Config.MQTT.StatusTopic, 1, false, payload)
+			token := sc.MQTTClient.Publish(sc.Config.MQTT.StatusTopic, sc.Config.MQTT.QoS, false, payload)
 			go func(t mqtt.Token) {
 				token.Wait()
 				if token.Error() != nil {
@@ -218,17 +224,64 @@ func (sc *ServiceContext) ShutDown(service *zrpc.RpcServer, quit *chan os.Signal
 		// 使用 sync.Once 确保清理逻辑只执行一次
 		once.Do(func() {
 			// 触发全局广播
+			log.Println("🛑 触发全局广播...")
 			sc.Cancel()
 
 			// 等待所有协程安全退出
-			wg.Wait()
+			log.Println("🛑 等待所有协程安全退出...")
+			sc.wg.Wait()
 			log.Println("✅ 所有协程已安全退出")
 
 			// 停止 RPC 服务
 			log.Println("🛑 开始停止 RPC 服务...")
 			service.Stop()
+
 			close(*shutdownDone)
 			log.Println("✅ RPC 服务已停止")
 		})
 	}()
+}
+
+func (sc *ServiceContext) Heartbeat() {
+	ticker := time.NewTicker(30 * time.Second)
+	sc.wg.Add(1)
+
+	defer ticker.Stop()
+	defer sc.wg.Done()
+	// 业务层心跳监听
+	// 创建一个每 30 秒触发一次的定时器
+
+	// 在独立的 Goroutine 中运行
+	for {
+		select {
+		case <-sc.Ctx.Done():
+			log.Println("🛑 [心跳] 收到退出信号，协程安全退出")
+			return
+		case <-ticker.C:
+			log.Println("🚀 发送业务心跳")
+			go func() {
+				// 构造业务心跳数据
+				heartbeatPayload := map[string]interface{}{
+					"timestamp": time.Now().Unix(),
+					"status":    "online",
+					"speed":     60.5,
+					"vehicleID": sc.Config.Vehicle.ID,
+				}
+
+				payloadBytes, _ := json.Marshal(heartbeatPayload)
+
+				// 发布心跳消息到指定 Topic
+				token := sc.MQTTClient.Publish(sc.Config.MQTT.HeartbeatTopic, sc.Config.MQTT.QoS, false, payloadBytes)
+				if !token.WaitTimeout(5 * time.Second) {
+					log.Printf("⚠️ Timeout waiting for business heartbeat to be sent")
+					return
+				}
+				if token.Error() != nil {
+					log.Printf("❌ Failed to send business heartbeat: %v", token.Error())
+				} else {
+					log.Printf("✅ Business heartbeat sent successfully")
+				}
+			}()
+		}
+	}
 }

@@ -10,8 +10,12 @@ MQTT:
   CACert: /etc/certs/ca.crt # CA 证书路径
   ClientCert: /etc/certs/client.crt # 客户端证书路径
   ClientKey: /etc/certs/client.key # 客户端密钥路径
-
+  HeartbeatTopic: /vehicle/1001/heartbeat # MQTT 心跳主题
+  QoS: 1 # MQTT QoS 等级
+  
 Vehicle:
   ID: “1001” # 车辆 ID
 
-Path: C:\Users\Admin\Desktop\IOT\v1\vehicle
+Path: /mnt/c/Users/Admin/Desktop/IOT/v1/vehicle # C:\Users\Admin\Desktop\IOT\v1\vehicle
+
+HeartbeatInterval: 10s # 心跳间隔
