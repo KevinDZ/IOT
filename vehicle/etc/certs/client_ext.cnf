@@ -1,0 +1,9 @@
+[v3_req]
+# 核心：声明这是客户端证书
+extendedKeyUsage = clientAuth
+# 核心：包含本地回环地址
+subjectAltName = @alt_names
+
+[alt_names]
+DNS.1 = localhost
+IP.1 = 127.0.0.1

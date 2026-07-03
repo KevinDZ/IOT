@@ -30,7 +30,12 @@ func main() {
 	var wg sync.WaitGroup
 
 	conf.MustLoad(*configFile, &c)
-	ctx := svc.NewServiceContext(c, &wg)
+
+	log.Println(c.MQTT.CACert, c.MQTT.ClientCert, c.MQTT.ClientKey)
+	tls := config.NewTLS(c.Path, c.MQTT.CACert, c.MQTT.ClientCert, c.MQTT.ClientKey)
+	log.Println(tls)
+
+	ctx := svc.NewServiceContext(c, tls, &wg)
 
 	s := zrpc.MustNewServer(c.RpcServerConf, func(grpcServer *grpc.Server) {
 		vehicle.RegisterVehicleServiceServer(grpcServer, server.NewVehicleServiceServer(ctx))

@@ -2,6 +2,7 @@ package svc
 
 import (
 	"context"
+	"crypto/tls"
 	"encoding/json"
 	"log"
 	"os"
@@ -23,11 +24,12 @@ type ServiceContext struct {
 	SigChan    chan os.Signal
 }
 
-func NewServiceContext(c config.Config, wg *sync.WaitGroup) *ServiceContext {
+func NewServiceContext(c config.Config, t *tls.Config, wg *sync.WaitGroup) *ServiceContext {
 	// 初始化 MQTT 客户端
 	opts := mqtt.NewClientOptions().AddBroker(c.MQTT.Broker)
 	opts.SetClientID(c.MQTT.ClientID)
 	opts.SetAutoReconnect(true)
+	opts.SetTLSConfig(t)
 
 	// 🚨 核心：配置遗嘱消息 (Will Message)
 	// 当 EMQX 检测到该客户端异常掉线（如突然断电、拔网线）时，

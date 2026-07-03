@@ -2,10 +2,16 @@ Name: vehicle-rpc
 ListenOn: 127.0.0.1:8081 # gRPC 监听端口
 
 MQTT:
-  Broker: tcp://172.28.29.226:1883 # MQTT 代理地址
+  # Broker: tcp://172.28.29.226:1883 # MQTT 代理地址
+  Broker: ssl://127.0.0.1:8883 # MQTT 代理地址
   StatusTopic: /vehicle/1001/status # MQTT 状态主题
   ControlTopic: /vehicle/1001/control # MQTT 控制主题
   ClientID: vehicle-rpc-1001 # MQTT 客户端 ID
+  CACert: /etc/certs/ca.crt # CA 证书路径
+  ClientCert: /etc/certs/client.crt # 客户端证书路径
+  ClientKey: /etc/certs/client.key # 客户端密钥路径
 
 Vehicle:
   ID: “1001” # 车辆 ID
+
+Path: C:\Users\Admin\Desktop\IOT\v1\vehicle
