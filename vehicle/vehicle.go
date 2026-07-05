@@ -39,7 +39,6 @@ func main() {
 	}
 
 	tls := config.NewTLS(c.Path, c.MQTT.CACert, c.MQTT.ClientCert, c.MQTT.ClientKey)
-	// log.Println(tls)
 
 	ctx := svc.NewServiceContext(c, tls, &wg)
 

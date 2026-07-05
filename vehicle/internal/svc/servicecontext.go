@@ -99,7 +99,7 @@ func (s *ServiceContext) initMQTT() {
 	go s.uploadStatus()
 
 	// 启动协程 3： 心跳监听
-	s.Heartbeat()
+	go s.Heartbeat()
 }
 
 func (sc *ServiceContext) listenCommands() {
