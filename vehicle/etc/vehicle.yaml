@@ -16,6 +16,9 @@ MQTT:
 Vehicle:
   ID: “1001” # 车辆 ID
 
-Path: /mnt/c/Users/Admin/Desktop/IOT/v1/vehicle # C:\Users\Admin\Desktop\IOT\v1\vehicle
+LinuxPath: /mnt/c/Users/Admin/Desktop/IOT/v1/vehicle # C:\Users\Admin\Desktop\IOT\v1\
+WindowsPath: C:\Users\Admin\Desktop\IOT\v1\vehicle
+Path: /
+
 
 HeartbeatInterval: 10s # 心跳间隔

@@ -32,6 +32,12 @@ func main() {
 	conf.MustLoad(*configFile, &c)
 
 	// log.Println(c.MQTT.CACert, c.MQTT.ClientCert, c.MQTT.ClientKey)
+	if os.Getenv("OS") == "windows" {
+		c.Path = c.WindowsPath
+	} else {
+		c.Path = c.LinuxPath
+	}
+
 	tls := config.NewTLS(c.Path, c.MQTT.CACert, c.MQTT.ClientCert, c.MQTT.ClientKey)
 	// log.Println(tls)
 

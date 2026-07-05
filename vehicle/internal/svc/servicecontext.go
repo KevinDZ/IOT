@@ -200,7 +200,10 @@ func (sc *ServiceContext) uploadStatus() {
 			// 发布到专属的状态 Topic
 			token := sc.MQTTClient.Publish(sc.Config.MQTT.StatusTopic, sc.Config.MQTT.QoS, false, payload)
 			go func(t mqtt.Token) {
-				token.Wait()
+				if !token.WaitTimeout(5 * time.Second) {
+					log.Printf("❌ 发布状态超时: %v\n", token.Error())
+					return
+				}
 				if token.Error() != nil {
 					log.Printf("❌ 发布状态失败: %v\n", token.Error())
 					return
