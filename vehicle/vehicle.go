@@ -31,9 +31,9 @@ func main() {
 
 	conf.MustLoad(*configFile, &c)
 
-	log.Println(c.MQTT.CACert, c.MQTT.ClientCert, c.MQTT.ClientKey)
+	// log.Println(c.MQTT.CACert, c.MQTT.ClientCert, c.MQTT.ClientKey)
 	tls := config.NewTLS(c.Path, c.MQTT.CACert, c.MQTT.ClientCert, c.MQTT.ClientKey)
-	log.Println(tls)
+	// log.Println(tls)
 
 	ctx := svc.NewServiceContext(c, tls, &wg)
 

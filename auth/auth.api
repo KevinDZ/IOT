@@ -1,0 +1,31 @@
+syntax = "v1"
+
+// ==========================================
+// 1. 定义数据结构
+// ==========================================
+// EmqxAclReq 对应 EMQX 发起鉴权请求时传递的 Body 数据
+type EmqxAclReq {
+	ClientId string `json:"clientid"` // 客户端ID，如 mobile_user123
+	Username string `json:"username"` // 用户名
+	Action   string `json:"action"` // 操作类型：publish 或 subscribe
+	Topic    string `json:"topic"` // 操作的 Topic，如 /vehicle/1001/status
+}
+
+// EmqxAclResp 对应返回给 EMQX 的鉴权结果
+type EmqxAclResp {
+	Result string `json:"result"` // 鉴权结果：allow 或 deny
+}
+
+// ==========================================
+// 2. 定义接口路由
+// ==========================================
+@server (
+	group:  emqx
+	prefix: /api/v1/emqx
+)
+service auth-api {
+	// 定义 EMQX 动态鉴权接口
+	@handler EmqxAcl
+	post /acl (EmqxAclReq) returns (EmqxAclResp)
+}
+
