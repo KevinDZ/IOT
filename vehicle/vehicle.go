@@ -32,8 +32,13 @@ func main() {
 	conf.MustLoad(*configFile, &c)
 
 	// log.Println(c.MQTT.CACert, c.MQTT.ClientCert, c.MQTT.ClientKey)
+	dir, err := os.Getwd()
+	if err != nil {
+		log.Fatalf("获取当前工作目录失败: %v", err)
+	}
+	c.Path = dir + c.Path
+
 	tls := config.NewTLS(c.Path, c.MQTT.CACert, c.MQTT.ClientCert, c.MQTT.ClientKey)
-	// log.Println(tls)
 
 	ctx := svc.NewServiceContext(c, tls, &wg)
 
