@@ -22,8 +22,6 @@ type Config struct {
 	Vehicle struct {
 		ID string
 	}
-	LinuxPath         string
-	WindowsPath       string
 	Path              string
 	HeartbeatInterval time.Duration
 }

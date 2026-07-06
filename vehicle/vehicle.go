@@ -32,11 +32,11 @@ func main() {
 	conf.MustLoad(*configFile, &c)
 
 	// log.Println(c.MQTT.CACert, c.MQTT.ClientCert, c.MQTT.ClientKey)
-	if os.Getenv("OS") == "windows" {
-		c.Path = c.WindowsPath
-	} else {
-		c.Path = c.LinuxPath
+	dir, err := os.Getwd()
+	if err != nil {
+		log.Fatalf("获取当前工作目录失败: %v", err)
 	}
+	c.Path = dir + c.Path
 
 	tls := config.NewTLS(c.Path, c.MQTT.CACert, c.MQTT.ClientCert, c.MQTT.ClientKey)
 
